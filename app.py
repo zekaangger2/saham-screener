@@ -1,435 +1,346 @@
 import streamlit as st
 import pandas as pd
 import yfinance as yf
-from streamlit_autorefresh import st_autorefresh
-
+from datetime import datetime
 from stocks import STOCKS
 
-# =====================================================
-# AUTO REFRESH
-# =====================================================
-
-st_autorefresh(interval=60000, key="refresh")
-
-# =====================================================
+# =========================================================
 # PAGE CONFIG
-# =====================================================
+# =========================================================
 
 st.set_page_config(
-    page_title="IDX Smart Money Scanner",
+    page_title="IDX Institutional Scanner",
     layout="wide"
 )
 
-# =====================================================
+# =========================================================
 # TITLE
-# =====================================================
+# =========================================================
 
-st.title("🚀 IDX INSTITUTIONAL SCANNER")
-st.caption(
-    "Smart Money • Accumulation • Sector Rotation • AI Score"
+st.title("🔥 IDX Institutional Scanner")
+
+# =========================================================
+# INFO HEADER
+# =========================================================
+
+total_scan = len(STOCKS)
+
+now = datetime.now().strftime("%d %B %Y %H:%M")
+
+st.markdown(
+    f"""
+    <div style='margin-top:-10px; margin-bottom:20px;'>
+
+    <span style='font-size:13px; color:gray;'>
+    Telah di scan dari <b>{total_scan}</b> saham IDX
+    </span>
+
+    <br>
+
+    <span style='font-size:11px; color:gray;'>
+    Last Market Detection : {now}
+    </span>
+
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
-# =====================================================
-# SECTOR MAP
-# =====================================================
+# =========================================================
+# MARKET STATUS
+# =========================================================
 
-sector_map = {
+hour = datetime.now().hour
 
-    "BBCA.JK":"BANK",
-    "BBRI.JK":"BANK",
-    "BMRI.JK":"BANK",
-    "BBNI.JK":"BANK",
-    "BRIS.JK":"BANK",
-    "ARTO.JK":"BANK",
-    "BTPS.JK":"BANK",
-    "BJBR.JK":"BANK",
+if 9 <= hour <= 16:
+    market_status = "🟢 MARKET OPEN"
+else:
+    market_status = "🔴 MARKET CLOSED"
 
-    "ANTM.JK":"MINING",
-    "ADRO.JK":"MINING",
-    "PTBA.JK":"MINING",
-    "TINS.JK":"MINING",
-    "MDKA.JK":"MINING",
-    "ITMG.JK":"MINING",
-    "MEDC.JK":"MINING",
-    "ADMR.JK":"MINING",
+st.markdown(
+    f"""
+    <div style='padding:10px;
+                border-radius:10px;
+                background-color:#111111;
+                margin-bottom:20px;
+                font-size:15px;'>
 
-    "TLKM.JK":"TELECOM",
-    "ISAT.JK":"TELECOM",
-    "EXCL.JK":"TELECOM",
+    {market_status}
 
-    "ASII.JK":"AUTOMOTIVE",
-    "AUTO.JK":"AUTOMOTIVE",
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-    "UNVR.JK":"CONSUMER",
-    "ICBP.JK":"CONSUMER",
-    "INDF.JK":"CONSUMER",
-    "MYOR.JK":"CONSUMER",
-    "ULTJ.JK":"CONSUMER",
-    "SIDO.JK":"CONSUMER",
+# =========================================================
+# CATEGORY MAP
+# =========================================================
 
-    "CPIN.JK":"POULTRY",
-    "JPFA.JK":"POULTRY",
-    "MAIN.JK":"POULTRY",
+CATEGORY_MAP = {
 
-    "PWON.JK":"PROPERTY",
-    "BSDE.JK":"PROPERTY",
-    "CTRA.JK":"PROPERTY",
+    "BANK": [
+        "BBCA.JK","BBRI.JK","BMRI.JK","BBNI.JK",
+        "BRIS.JK","ARTO.JK","BTPS.JK","BJBR.JK"
+    ],
 
-    "JSMR.JK":"INFRA",
-    "PGAS.JK":"INFRA",
+    "MINING": [
+        "ANTM.JK","ADRO.JK","PTBA.JK","ITMG.JK",
+        "MDKA.JK","TINS.JK","ADMR.JK","BUMI.JK"
+    ],
 
-    "HEAL.JK":"HEALTHCARE",
-    "KLBF.JK":"HEALTHCARE",
+    "PROPERTY": [
+        "BSDE.JK","PWON.JK","CTRA.JK","SMRA.JK"
+    ],
 
-    "ERAA.JK":"TECHNOLOGY",
-    "DNET.JK":"TECHNOLOGY",
-    "GOTO.JK":"TECHNOLOGY",
-    "BUKA.JK":"TECHNOLOGY",
+    "TECHNOLOGY": [
+        "GOTO.JK","BUKA.JK","DNET.JK","EMTK.JK"
+    ],
 
-    "SMGR.JK":"CEMENT",
-    "INTP.JK":"CEMENT",
+    "CONSUMER": [
+        "ICBP.JK","INDF.JK","UNVR.JK","MYOR.JK"
+    ],
 
-    "UNTR.JK":"HEAVY_EQUIPMENT",
+    "HEALTHCARE": [
+        "KLBF.JK","HEAL.JK","MIKA.JK","SILO.JK"
+    ],
 
-    "ADHI.JK":"CONSTRUCTION",
-    "PTPP.JK":"CONSTRUCTION",
-    "WIKA.JK":"CONSTRUCTION",
+    "TELECOM": [
+        "TLKM.JK","ISAT.JK","EXCL.JK"
+    ],
 
-    "BIRD.JK":"TRANSPORT",
-    "SMDR.JK":"TRANSPORT",
+    "POULTRY": [
+        "CPIN.JK","JPFA.JK","MAIN.JK"
+    ],
 
-    "ACES.JK":"RETAIL",
-    "AMRT.JK":"RETAIL",
-    "MAPI.JK":"RETAIL",
-
-    "ELSA.JK":"ENERGY",
-
-    "HMSP.JK":"TOBACCO",
-
-    "BUMI.JK":"MINING"
-
+    "INFRA": [
+        "PGAS.JK","JSMR.JK","WIKA.JK","PTPP.JK"
+    ]
 }
 
-# =====================================================
-# DOWNLOAD DATA
-# =====================================================
+# =========================================================
+# CREATE CATEGORY
+# =========================================================
 
-with st.spinner("Scanning institutional activity..."):
+def get_category(stock):
 
-    data = yf.download(
-        tickers=STOCKS,
-        period="6mo",
-        interval="1d",
-        group_by="ticker",
-        auto_adjust=True,
-        threads=True,
-        progress=False
-    )
+    for category, members in CATEGORY_MAP.items():
 
-# =====================================================
-# ANALYSIS
-# =====================================================
+        if stock in members:
+            return category
 
-results = []
+    return "OTHERS"
+
+# =========================================================
+# MAIN SCANNER
+# =========================================================
+
+hasil = []
+
+st.info(f"Scanning {len(STOCKS)} saham IDX...")
+
+data = yf.download(
+    STOCKS,
+    period="3mo",
+    interval="1d",
+    group_by="ticker",
+    auto_adjust=True,
+    threads=True
+)
 
 for stock in STOCKS:
 
     try:
 
-        df = data[stock].dropna()
+        df = data[stock].copy()
 
-        if len(df) < 40:
+        if len(df) < 25:
             continue
 
-        # =================================================
-        # BASIC DATA
-        # =================================================
+        # ====================================
+        # VOLUME
+        # ====================================
 
-        close_today = df["Close"].iloc[-1]
-        close_yesterday = df["Close"].iloc[-2]
+        volume_today = float(df["Volume"].iloc[-1])
 
-        volume_today = df["Volume"].iloc[-1]
-        avg_volume_20 = df["Volume"].tail(20).mean()
+        avg_volume = float(
+            df["Volume"]
+            .rolling(20)
+            .mean()
+            .iloc[-1]
+        )
 
-        price_change = (
+        ratio_volume = volume_today / avg_volume
+
+        # ====================================
+        # PRICE
+        # ====================================
+
+        close_today = float(df["Close"].iloc[-1])
+        close_yesterday = float(df["Close"].iloc[-2])
+
+        pct_change = (
             (close_today - close_yesterday)
             / close_yesterday
         ) * 100
 
-        volume_ratio = (
-            volume_today / avg_volume_20
-        )
+        # ====================================
+        # VALUE
+        # ====================================
 
-        # =================================================
-        # TRANSACTION VALUE
-        # =================================================
+        value_today = volume_today * close_today
 
-        value_today = close_today * volume_today
-
-        avg_value_20 = (
-            (df["Close"] * df["Volume"])
-            .tail(20)
-            .mean()
-        )
-
-        transaction_ratio = (
-            value_today / avg_value_20
-        )
-
-        # =================================================
-        # RELATIVE STRENGTH
-        # =================================================
-
-        rs = (
+        avg_value = (
             (
-                close_today /
-                df["Close"].iloc[-20]
-            ) - 1
-        ) * 100
-
-        # =================================================
-        # BREAKOUT
-        # =================================================
-
-        breakout = (
-            close_today >=
-            df["High"].tail(20).max()
+                df["Volume"] * df["Close"]
+            )
+            .rolling(20)
+            .mean()
+            .iloc[-1]
         )
 
-        # =================================================
-        # EARLY ACCUMULATION
-        # =================================================
+        ratio_value = value_today / avg_value
 
-        accumulation = (
-
-            volume_ratio > 1.5
-            and
-            abs(price_change) < 3
-            and
-            rs > 0
-
-        )
-
-        # =================================================
-        # SMART MONEY SCORE
-        # =================================================
-
-        score = 0
-
-        # volume score
-        if volume_ratio > 3:
-            score += 30
-        elif volume_ratio > 2:
-            score += 20
-        elif volume_ratio > 1.5:
-            score += 10
-
-        # transaction score
-        if transaction_ratio > 3:
-            score += 30
-        elif transaction_ratio > 2:
-            score += 20
-        elif transaction_ratio > 1.5:
-            score += 10
-
-        # RS score
-        if rs > 20:
-            score += 20
-        elif rs > 10:
-            score += 15
-        elif rs > 5:
-            score += 10
-
-        # breakout score
-        if breakout:
-            score += 10
-
-        # accumulation score
-        if accumulation:
-            score += 10
-
-        # =================================================
+        # ====================================
         # AI SIGNAL
-        # =================================================
+        # ====================================
 
-        signal = "NEUTRAL"
+        if ratio_volume >= 5 and pct_change > 3:
+            ai_signal = "🔥 SUPER STRONG"
 
-        if score >= 80:
-            signal = "🔥 STRONG BUY"
+        elif ratio_volume >= 3 and pct_change > 0:
+            ai_signal = "🚀 STRONG"
 
-        elif score >= 60:
-            signal = "✅ BUY"
-
-        elif score >= 40:
-            signal = "🟡 SPEC BUY"
-
-        elif score >= 20:
-            signal = "👀 WATCHLIST"
+        elif ratio_volume >= 2:
+            ai_signal = "👀 ACCUMULATION"
 
         else:
-            signal = "❌ AVOID"
+            ai_signal = "-"
 
-        # =================================================
-        # SAVE RESULT
-        # =================================================
+        # ====================================
+        # FILTER
+        # ====================================
 
-        results.append({
+        if ratio_volume >= 2:
 
-            "Ticker": stock,
+            hasil.append({
 
-            "Sector":
-                sector_map.get(stock, "OTHER"),
+                "Ticker": stock,
+                "Sector": get_category(stock),
 
-            "Price":
-                f"{close_today:,.0f}".replace(",", "."),
+                "Price": round(close_today, 2),
 
-            "% Change":
-                f"{price_change:+.2f}%",
+                "% Change": round(pct_change, 2),
 
-            "Avg Volume 20D":
-                f"{int(avg_volume_20):,}".replace(",", "."),
+                "Avg Vol 20D": int(avg_volume),
 
-            "Volume Today":
-                f"{int(volume_today):,}".replace(",", "."),
+                "Today Vol": int(volume_today),
 
-            "Volume Ratio":
-                round(volume_ratio, 2),
+                "Volume Ratio": round(ratio_volume, 2),
 
-            "Transaction Ratio":
-                round(transaction_ratio, 2),
+                "Transaction Value": int(value_today),
 
-            "Relative Strength":
-                round(rs, 2),
+                "AI Signal": ai_signal
 
-            "Breakout":
-                "YES" if breakout else "NO",
-
-            "Accumulation":
-                "YES" if accumulation else "NO",
-
-            "AI Score":
-                score,
-
-            "AI Signal":
-                signal
-
-        })
+            })
 
     except:
         continue
 
-# =====================================================
+# =========================================================
 # DATAFRAME
-# =====================================================
+# =========================================================
 
-df_result = pd.DataFrame(results)
+df_hasil = pd.DataFrame(hasil)
 
-# =====================================================
-# FILTERS
-# =====================================================
+# =========================================================
+# EMPTY CHECK
+# =========================================================
 
-st.sidebar.title("FILTER")
+if df_hasil.empty:
 
-search = st.sidebar.text_input(
-    "Search Ticker"
-)
+    st.warning("Tidak ada saham memenuhi kriteria.")
 
-sector_filter = st.sidebar.selectbox(
-    "Sector",
-    ["ALL"] + sorted(df_result["Sector"].unique())
-)
+else:
 
-signal_filter = st.sidebar.selectbox(
-    "AI Signal",
-    ["ALL"] + sorted(df_result["AI Signal"].unique())
-)
+    # =====================================
+    # SORT
+    # =====================================
 
-acc_filter = st.sidebar.selectbox(
-    "Accumulation",
-    ["ALL", "YES", "NO"]
-)
-
-filtered_df = df_result.copy()
-
-if search:
-    filtered_df = filtered_df[
-        filtered_df["Ticker"]
-        .str.contains(search.upper())
-    ]
-
-if sector_filter != "ALL":
-    filtered_df = filtered_df[
-        filtered_df["Sector"] == sector_filter
-    ]
-
-if signal_filter != "ALL":
-    filtered_df = filtered_df[
-        filtered_df["AI Signal"] == signal_filter
-    ]
-
-if acc_filter != "ALL":
-    filtered_df = filtered_df[
-        filtered_df["Accumulation"] == acc_filter
-    ]
-
-# =====================================================
-# SECTOR ROTATION
-# =====================================================
-
-st.subheader("🔥 STRONGEST SECTOR")
-
-sector_strength = (
-
-    filtered_df
-    .groupby("Sector")["AI Score"]
-    .mean()
-    .sort_values(ascending=False)
-
-)
-
-cols = st.columns(4)
-
-for i, (sector, value) in enumerate(
-    sector_strength.items()
-):
-
-    cols[i % 4].metric(
-        sector,
-        f"{round(value,1)}"
+    df_hasil = df_hasil.sort_values(
+        by="Volume Ratio",
+        ascending=False
     )
 
-# =====================================================
-# EARLY ACCUMULATION TABLE
-# =====================================================
+    # =====================================
+    # FILTER SECTOR
+    # =====================================
 
-st.subheader("🏦 EARLY ACCUMULATION")
+    sectors = ["ALL"] + sorted(
+        df_hasil["Sector"].unique().tolist()
+    )
 
-acc_df = filtered_df[
-    filtered_df["Accumulation"] == "YES"
-]
+    selected_sector = st.selectbox(
+        "Filter Sector",
+        sectors
+    )
 
-acc_df = acc_df.sort_values(
-    by="AI Score",
-    ascending=False
-)
+    if selected_sector != "ALL":
 
-st.dataframe(
-    acc_df.head(15),
-    use_container_width=True
-)
+        df_hasil = df_hasil[
+            df_hasil["Sector"] == selected_sector
+        ]
 
-# =====================================================
-# MAIN TABLE
-# =====================================================
+    # =====================================
+    # TOP SECTOR TODAY
+    # =====================================
 
-st.subheader("🚀 MAIN SCANNER")
+    top_sector = (
+        df_hasil.groupby("Sector")["Volume Ratio"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(1)
+    )
 
-filtered_df = filtered_df.sort_values(
-    by="AI Score",
-    ascending=False
-)
+    if len(top_sector) > 0:
 
-st.dataframe(
-    filtered_df,
-    use_container_width=True
-)
+        sector_name = top_sector.index[0]
+        sector_value = round(top_sector.iloc[0], 2)
+
+        st.success(
+            f"🔥 Strongest Sector Today : {sector_name} ({sector_value}x)"
+        )
+
+    # =====================================
+    # FORMAT
+    # =====================================
+
+    df_display = df_hasil.copy()
+
+    df_display["Avg Vol 20D"] = df_display[
+        "Avg Vol 20D"
+    ].apply(lambda x: f"{x:,}")
+
+    df_display["Today Vol"] = df_display[
+        "Today Vol"
+    ].apply(lambda x: f"{x:,}")
+
+    df_display["Transaction Value"] = df_display[
+        "Transaction Value"
+    ].apply(lambda x: f"{x:,}")
+
+    df_display["Price"] = df_display[
+        "Price"
+    ].apply(lambda x: f"{x:,.0f}")
+
+    df_display["% Change"] = df_display[
+        "% Change"
+    ].apply(lambda x: f"{x:+.2f}%")
+
+    # =====================================
+    # SHOW TABLE
+    # =====================================
+
+    st.dataframe(
+        df_display,
+        use_container_width=True
+    )
