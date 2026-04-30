@@ -145,123 +145,199 @@ stocks = list(set(stocks))
 stocks.sort()
 
 # =====================================================
-# DOWNLOAD DATA
-# =====================================================
-
-with st.spinner("Downloading market data..."):
-
-    data = yf.download(
-    tickers=stocks,
-    period="3mo",
-    interval="1d",
-    auto_adjust=True,
-    group_by="ticker",
-    threads=True,
-    progress=False
-)
-
-# =====================================================
-# ANALISA
+# FAST BATCH SCANNER
 # =====================================================
 
 hasil = []
 
-for stock in stocks:
+BATCH_SIZE = 50
+
+batches = [
+    stocks[i:i + BATCH_SIZE]
+    for i in range(0, len(stocks), BATCH_SIZE)
+]
+
+progress_bar = st.progress(0)
+status_text = st.empty()
+
+total_batch = len(batches)
+
+for idx, batch in enumerate(batches):
 
     try:
 
-        df = data[stock].copy()
-
-        if df.empty:
-            continue
-
-        if len(df) < 20:
-            continue
-
-        df["Close"] = df["Close"].fillna(0)
-        df["Volume"] = df["Volume"].fillna(0)
-
-        df["avg_volume_20"] = (
-            df["Volume"]
-            .rolling(20)
-            .mean()
+        status_text.text(
+            f"Scanning batch {idx+1}/{total_batch}..."
         )
 
-        df["value"] = df["Close"] * df["Volume"]
-
-        df["avg_value_20"] = (
-            df["value"]
-            .rolling(20)
-            .mean()
+        data = yf.download(
+            tickers=batch,
+            period="3mo",
+            interval="1d",
+            auto_adjust=True,
+            group_by="ticker",
+            threads=True,
+            progress=False
         )
 
-        volume_hari_ini = float(df["Volume"].iloc[-1])
-        avg_volume_20 = float(df["avg_volume_20"].iloc[-1])
+        for stock in batch:
 
-        value_hari_ini = float(df["value"].iloc[-1])
-        avg_value_20 = float(df["avg_value_20"].iloc[-1])
+            try:
 
-        if np.isnan(avg_volume_20):
-            continue
+                if stock not in data:
+                    continue
 
-        if np.isnan(avg_value_20):
-            continue
+                df = data[stock].copy()
 
-        if avg_volume_20 <= 0:
-            continue
+                if df.empty:
+                    continue
 
-        if avg_value_20 <= 0:
-            continue
+                if len(df) < 20:
+                    continue
 
-        rasio_volume = volume_hari_ini / avg_volume_20
-        rasio_value = value_hari_ini / avg_value_20
+                df["Close"] = (
+                    df["Close"]
+                    .fillna(method="ffill")
+                    .fillna(0)
+                )
 
-        # =========================================
-        # SIGNAL
-        # =========================================
+                df["Volume"] = (
+                    df["Volume"]
+                    .fillna(0)
+                )
 
-        if rasio_volume >= 3:
-            signal = "🔥 EXTREME"
+                # =====================================
+                # AVG VOLUME
+                # =====================================
 
-        elif rasio_volume >= 2:
-            signal = "🚀 HIGH"
+                avg_volume_20 = (
+                    df["Volume"]
+                    .rolling(20)
+                    .mean()
+                    .iloc[-1]
+                )
 
-        elif rasio_volume >= 1.5:
-            signal = "⚡ ACTIVE"
+                volume_today = (
+                    df["Volume"]
+                    .iloc[-1]
+                )
 
-        else:
-            signal = "NORMAL"
+                # =====================================
+                # VALUE
+                # =====================================
 
-        hasil.append({
+                df["value"] = (
+                    df["Close"] *
+                    df["Volume"]
+                )
 
-            "Ticker":
-                stock,
+                avg_value_20 = (
+                    df["value"]
+                    .rolling(20)
+                    .mean()
+                    .iloc[-1]
+                )
 
-            "Signal":
-                signal,
+                value_today = (
+                    df["value"]
+                    .iloc[-1]
+                )
 
-            "Avg Volume 20":
-                f"{avg_volume_20:,.0f}".replace(",", "."),
+                # =====================================
+                # VALIDATION
+                # =====================================
 
-            "Volume Today":
-                f"{volume_hari_ini:,.0f}".replace(",", "."),
+                if pd.isna(avg_volume_20):
+                    continue
 
-            "Volume Ratio":
-                round(rasio_volume, 2),
+                if pd.isna(avg_value_20):
+                    continue
 
-            "Avg Value 20":
-                "Rp " + f"{avg_value_20:,.0f}".replace(",", "."),
+                if avg_volume_20 <= 0:
+                    continue
 
-            "Value Today":
-                "Rp " + f"{value_hari_ini:,.0f}".replace(",", "."),
+                if avg_value_20 <= 0:
+                    continue
 
-            "Value Ratio":
-                round(rasio_value, 2)
+                # =====================================
+                # RATIO
+                # =====================================
 
-        })
+                ratio_volume = (
+                    volume_today /
+                    avg_volume_20
+                )
+
+                ratio_value = (
+                    value_today /
+                    avg_value_20
+                )
+
+                # =====================================
+                # FILTER
+                # =====================================
+
+                if ratio_volume < 2:
+                    continue
+
+                # =====================================
+                # SIGNAL
+                # =====================================
+
+                if ratio_volume >= 5:
+                    signal = "🔥 SUPER"
+
+                elif ratio_volume >= 3:
+                    signal = "🚀 HIGH"
+
+                else:
+                    signal = "⚡ ACTIVE"
+
+                # =====================================
+                # APPEND
+                # =====================================
+
+                hasil.append({
+
+                    "Ticker":
+                        stock,
+
+                    "Signal":
+                        signal,
+
+                    "Avg Volume 20":
+                        f"{avg_volume_20:,.0f}".replace(",", "."),
+
+                    "Volume Today":
+                        f"{volume_today:,.0f}".replace(",", "."),
+
+                    "Volume Ratio":
+                        round(ratio_volume, 2),
+
+                    "Avg Value 20":
+                        "Rp " +
+                        f"{avg_value_20:,.0f}".replace(",", "."),
+
+                    "Value Today":
+                        "Rp " +
+                        f"{value_today:,.0f}".replace(",", "."),
+
+                    "Value Ratio":
+                        round(ratio_value, 2)
+
+                })
+
+            except:
+                continue
+
+        progress_bar.progress(
+            (idx + 1) / total_batch
+        )
 
     except:
         continue
+
+status_text.text("✅ Scan Complete")
 
 # =====================================================
 # DATAFRAME
