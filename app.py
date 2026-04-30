@@ -4,24 +4,24 @@ import yfinance as yf
 from datetime import datetime
 from stocks import STOCKS
 
-# =========================================================
+# =====================================================
 # PAGE CONFIG
-# =========================================================
+# =====================================================
 
 st.set_page_config(
     page_title="IDX Institutional Scanner",
     layout="wide"
 )
 
-# =========================================================
+# =====================================================
 # TITLE
-# =========================================================
+# =====================================================
 
 st.title("🔥 IDX Institutional Scanner")
 
-# =========================================================
-# INFO HEADER
-# =========================================================
+# =====================================================
+# HEADER INFO
+# =====================================================
 
 total_scan = len(STOCKS)
 
@@ -46,9 +46,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# =========================================================
+# =====================================================
 # MARKET STATUS
-# =========================================================
+# =====================================================
 
 hour = datetime.now().hour
 
@@ -61,9 +61,8 @@ st.markdown(
     f"""
     <div style='padding:10px;
                 border-radius:10px;
-                background-color:#111111;
-                margin-bottom:20px;
-                font-size:15px;'>
+                background:#111111;
+                margin-bottom:20px;'>
 
     {market_status}
 
@@ -72,9 +71,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# =========================================================
+# =====================================================
 # CATEGORY MAP
-# =========================================================
+# =====================================================
 
 CATEGORY_MAP = {
 
@@ -85,7 +84,7 @@ CATEGORY_MAP = {
 
     "MINING": [
         "ANTM.JK","ADRO.JK","PTBA.JK","ITMG.JK",
-        "MDKA.JK","TINS.JK","ADMR.JK","BUMI.JK"
+        "MDKA.JK","TINS.JK","ADMR.JK"
     ],
 
     "PROPERTY": [
@@ -117,9 +116,9 @@ CATEGORY_MAP = {
     ]
 }
 
-# =========================================================
-# CREATE CATEGORY
-# =========================================================
+# =====================================================
+# GET CATEGORY
+# =====================================================
 
 def get_category(stock):
 
@@ -130,13 +129,9 @@ def get_category(stock):
 
     return "OTHERS"
 
-# =========================================================
-# MAIN SCANNER
-# =========================================================
-
-hasil = []
-
-st.info(f"Scanning {len(STOCKS)} saham IDX...")
+# =====================================================
+# DOWNLOAD DATA
+# =====================================================
 
 data = yf.download(
     STOCKS,
@@ -147,6 +142,12 @@ data = yf.download(
     threads=True
 )
 
+# =====================================================
+# MAIN SCANNER
+# =====================================================
+
+hasil = []
+
 for stock in STOCKS:
 
     try:
@@ -155,10 +156,6 @@ for stock in STOCKS:
 
         if len(df) < 25:
             continue
-
-        # ====================================
-        # VOLUME
-        # ====================================
 
         volume_today = float(df["Volume"].iloc[-1])
 
@@ -171,11 +168,8 @@ for stock in STOCKS:
 
         ratio_volume = volume_today / avg_volume
 
-        # ====================================
-        # PRICE
-        # ====================================
-
         close_today = float(df["Close"].iloc[-1])
+
         close_yesterday = float(df["Close"].iloc[-2])
 
         pct_change = (
@@ -183,16 +177,10 @@ for stock in STOCKS:
             / close_yesterday
         ) * 100
 
-        # ====================================
-        # VALUE
-        # ====================================
-
         value_today = volume_today * close_today
 
         avg_value = (
-            (
-                df["Volume"] * df["Close"]
-            )
+            (df["Volume"] * df["Close"])
             .rolling(20)
             .mean()
             .iloc[-1]
@@ -200,9 +188,20 @@ for stock in STOCKS:
 
         ratio_value = value_today / avg_value
 
-        # ====================================
+        # =========================================
+        # RELATIVE STRENGTH
+        # =========================================
+
+        ma20 = df["Close"].rolling(20).mean().iloc[-1]
+
+        if close_today > ma20:
+            relative_strength = "STRONG"
+        else:
+            relative_strength = "WEAK"
+
+        # =========================================
         # AI SIGNAL
-        # ====================================
+        # =========================================
 
         if ratio_volume >= 5 and pct_change > 3:
             ai_signal = "🔥 SUPER STRONG"
@@ -216,15 +215,16 @@ for stock in STOCKS:
         else:
             ai_signal = "-"
 
-        # ====================================
+        # =========================================
         # FILTER
-        # ====================================
+        # =========================================
 
         if ratio_volume >= 2:
 
             hasil.append({
 
                 "Ticker": stock,
+
                 "Sector": get_category(stock),
 
                 "Price": round(close_today, 2),
@@ -239,6 +239,10 @@ for stock in STOCKS:
 
                 "Transaction Value": int(value_today),
 
+                "Value Ratio": round(ratio_value, 2),
+
+                "Relative Strength": relative_strength,
+
                 "AI Signal": ai_signal
 
             })
@@ -246,15 +250,15 @@ for stock in STOCKS:
     except:
         continue
 
-# =========================================================
+# =====================================================
 # DATAFRAME
-# =========================================================
+# =====================================================
 
 df_hasil = pd.DataFrame(hasil)
 
-# =========================================================
+# =====================================================
 # EMPTY CHECK
-# =========================================================
+# =====================================================
 
 if df_hasil.empty:
 
@@ -262,25 +266,16 @@ if df_hasil.empty:
 
 else:
 
-    # =====================================
-    # SORT
-    # =====================================
-
-    df_hasil = df_hasil.sort_values(
-        by="Volume Ratio",
-        ascending=False
-    )
-
-    # =====================================
+    # =================================================
     # FILTER SECTOR
-    # =====================================
+    # =================================================
 
     sectors = ["ALL"] + sorted(
         df_hasil["Sector"].unique().tolist()
     )
 
     selected_sector = st.selectbox(
-        "Filter Sector",
+        "📊 Filter Sector",
         sectors
     )
 
@@ -290,29 +285,60 @@ else:
             df_hasil["Sector"] == selected_sector
         ]
 
-    # =====================================
-    # TOP SECTOR TODAY
-    # =====================================
+    # =================================================
+    # SORT
+    # =================================================
 
-    top_sector = (
+    df_hasil = df_hasil.sort_values(
+        by="Volume Ratio",
+        ascending=False
+    )
+
+    # =================================================
+    # HEATMAP SECTOR
+    # =================================================
+
+    st.subheader("🔥 Sector Heatmap")
+
+    heatmap = (
         df_hasil.groupby("Sector")["Volume Ratio"]
         .mean()
         .sort_values(ascending=False)
-        .head(1)
     )
 
-    if len(top_sector) > 0:
+    st.dataframe(
+        heatmap.rename("Average Volume Ratio")
+    )
 
-        sector_name = top_sector.index[0]
-        sector_value = round(top_sector.iloc[0], 2)
+    # =================================================
+    # BANDAR ACCUMULATION
+    # =================================================
 
-        st.success(
-            f"🔥 Strongest Sector Today : {sector_name} ({sector_value}x)"
-        )
+    st.subheader("🏦 Bandar Accumulation Detector")
 
-    # =====================================
+    bandar_df = df_hasil[
+        (df_hasil["Value Ratio"] >= 2)
+        &
+        (df_hasil["% Change"] >= 0)
+    ]
+
+    st.dataframe(
+        bandar_df[
+            [
+                "Ticker",
+                "Sector",
+                "Price",
+                "% Change",
+                "Value Ratio",
+                "AI Signal"
+            ]
+        ],
+        use_container_width=True
+    )
+
+    # =================================================
     # FORMAT
-    # =====================================
+    # =================================================
 
     df_display = df_hasil.copy()
 
@@ -336,9 +362,11 @@ else:
         "% Change"
     ].apply(lambda x: f"{x:+.2f}%")
 
-    # =====================================
-    # SHOW TABLE
-    # =====================================
+    # =================================================
+    # MAIN TABLE
+    # =================================================
+
+    st.subheader("📈 Institutional Volume Scanner")
 
     st.dataframe(
         df_display,
