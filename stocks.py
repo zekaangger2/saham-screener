@@ -1,0 +1,38 @@
+STOCKS = [
+
+# BANK
+"BBCA.JK",
+"BBRI.JK",
+"BMRI.JK",
+"BBNI.JK",
+"BRIS.JK",
+"MEGA.JK",
+"BNGA.JK",
+
+# MINING
+"ADRO.JK",
+"ADMR.JK",
+"ANTM.JK",
+"TINS.JK",
+"PTBA.JK",
+"ITMG.JK",
+"MDKA.JK",
+"INDY.JK",
+"BUMI.JK",
+
+# PROPERTY
+"BSDE.JK",
+"PWON.JK",
+"CTRA.JK",
+"SMRA.JK",
+"DMAS.JK",
+
+# CONSUMER
+"ICBP.JK",
+"INDF.JK",
+"MYOR.JK",
+"ULTJ.JK",
+"UNVR.JK",
+
+# dst...
+]
