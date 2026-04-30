@@ -1,38 +1,94 @@
 STOCKS = [
 
-# BANK
-"BBCA.JK",
-"BBRI.JK",
-"BMRI.JK",
-"BBNI.JK",
-"BRIS.JK",
-"MEGA.JK",
-"BNGA.JK",
+    # BANK
+    "BBCA.JK",
+    "BBRI.JK",
+    "BMRI.JK",
+    "BBNI.JK",
+    "BRIS.JK",
+    "ARTO.JK",
+    "BTPS.JK",
+    "BJBR.JK",
 
-# MINING
-"ADRO.JK",
-"ADMR.JK",
-"ANTM.JK",
-"TINS.JK",
-"PTBA.JK",
-"ITMG.JK",
-"MDKA.JK",
-"INDY.JK",
-"BUMI.JK",
+    # MINING
+    "ANTM.JK",
+    "ADRO.JK",
+    "PTBA.JK",
+    "TINS.JK",
+    "MDKA.JK",
+    "ITMG.JK",
+    "MEDC.JK",
+    "ADMR.JK",
 
-# PROPERTY
-"BSDE.JK",
-"PWON.JK",
-"CTRA.JK",
-"SMRA.JK",
-"DMAS.JK",
+    # TELECOM
+    "TLKM.JK",
+    "ISAT.JK",
+    "EXCL.JK",
 
-# CONSUMER
-"ICBP.JK",
-"INDF.JK",
-"MYOR.JK",
-"ULTJ.JK",
-"UNVR.JK",
+    # AUTOMOTIVE
+    "ASII.JK",
+    "AUTO.JK",
 
-# dst...
+    # CONSUMER
+    "UNVR.JK",
+    "ICBP.JK",
+    "INDF.JK",
+    "MYOR.JK",
+    "ULTJ.JK",
+    "SIDO.JK",
+
+    # POULTRY
+    "CPIN.JK",
+    "JPFA.JK",
+    "MAIN.JK",
+
+    # PROPERTY
+    "PWON.JK",
+    "BSDE.JK",
+    "CTRA.JK",
+
+    # INFRA
+    "JSMR.JK",
+    "PGAS.JK",
+
+    # HEALTHCARE
+    "HEAL.JK",
+    "KLBF.JK",
+
+    # TECHNOLOGY
+    "ERAA.JK",
+    "DNET.JK",
+    "GOTO.JK",
+    "BUKA.JK",
+
+    # CEMENT
+    "SMGR.JK",
+    "INTP.JK",
+
+    # HEAVY EQUIPMENT
+    "UNTR.JK",
+
+    # CONSTRUCTION
+    "ADHI.JK",
+    "PTPP.JK",
+    "WIKA.JK",
+
+    # TRANSPORT
+    "BIRD.JK",
+    "SMDR.JK",
+
+    # RETAIL
+    "ACES.JK",
+    "AMRT.JK",
+    "MAPI.JK",
+
+    # ENERGY
+    "ELSA.JK",
+
+    # TOBACCO
+    "HMSP.JK",
+
+    # OTHERS
+    "BUMI.JK"
+
 ]
