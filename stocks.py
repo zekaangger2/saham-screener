@@ -1,94 +1,50 @@
-STOCKS = [
+import pandas as pd
 
-    # BANK
-    "BBCA.JK",
-    "BBRI.JK",
-    "BMRI.JK",
-    "BBNI.JK",
-    "BRIS.JK",
-    "ARTO.JK",
-    "BTPS.JK",
-    "BJBR.JK",
+# =====================================================
+# AMBIL SELURUH SAHAM IDX
+# =====================================================
 
-    # MINING
-    "ANTM.JK",
-    "ADRO.JK",
-    "PTBA.JK",
-    "TINS.JK",
-    "MDKA.JK",
-    "ITMG.JK",
-    "MEDC.JK",
-    "ADMR.JK",
+url = "https://www.idx.co.id/primary/TradingSummary/GetStockCode"
 
-    # TELECOM
-    "TLKM.JK",
-    "ISAT.JK",
-    "EXCL.JK",
+try:
 
-    # AUTOMOTIVE
-    "ASII.JK",
-    "AUTO.JK",
+    df = pd.read_json(url)
 
-    # CONSUMER
-    "UNVR.JK",
-    "ICBP.JK",
-    "INDF.JK",
-    "MYOR.JK",
-    "ULTJ.JK",
-    "SIDO.JK",
+    STOCKS = [
+        f"{kode}.JK"
+        for kode in df["Code"].tolist()
+    ]
 
-    # POULTRY
-    "CPIN.JK",
-    "JPFA.JK",
-    "MAIN.JK",
+except:
 
-    # PROPERTY
-    "PWON.JK",
-    "BSDE.JK",
-    "CTRA.JK",
+    # fallback jika server IDX gagal
+    STOCKS = [
 
-    # INFRA
-    "JSMR.JK",
-    "PGAS.JK",
+        "BBCA.JK",
+        "BBRI.JK",
+        "BMRI.JK",
+        "BBNI.JK",
+        "BRIS.JK",
 
-    # HEALTHCARE
-    "HEAL.JK",
-    "KLBF.JK",
+        "ANTM.JK",
+        "ADRO.JK",
+        "PTBA.JK",
+        "TINS.JK",
 
-    # TECHNOLOGY
-    "ERAA.JK",
-    "DNET.JK",
-    "GOTO.JK",
-    "BUKA.JK",
+        "TLKM.JK",
+        "ISAT.JK",
+        "EXCL.JK",
 
-    # CEMENT
-    "SMGR.JK",
-    "INTP.JK",
+        "ASII.JK",
+        "UNVR.JK",
+        "ICBP.JK",
+        "INDF.JK",
 
-    # HEAVY EQUIPMENT
-    "UNTR.JK",
+        "CPIN.JK",
+        "JPFA.JK",
 
-    # CONSTRUCTION
-    "ADHI.JK",
-    "PTPP.JK",
-    "WIKA.JK",
+        "PWON.JK",
+        "BSDE.JK",
+        "CTRA.JK"
 
-    # TRANSPORT
-    "BIRD.JK",
-    "SMDR.JK",
-
-    # RETAIL
-    "ACES.JK",
-    "AMRT.JK",
-    "MAPI.JK",
-
-    # ENERGY
-    "ELSA.JK",
-
-    # TOBACCO
-    "HMSP.JK",
-
-    # OTHERS
-    "BUMI.JK"
-
-]
+    ]
