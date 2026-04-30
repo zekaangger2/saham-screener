@@ -188,9 +188,9 @@ for stock in STOCKS:
 
         ratio_value = value_today / avg_value
 
-        # =========================================
+        # =================================================
         # RELATIVE STRENGTH
-        # =========================================
+        # =================================================
 
         ma20 = df["Close"].rolling(20).mean().iloc[-1]
 
@@ -199,9 +199,9 @@ for stock in STOCKS:
         else:
             relative_strength = "WEAK"
 
-        # =========================================
+        # =================================================
         # AI SIGNAL
-        # =========================================
+        # =================================================
 
         if ratio_volume >= 5 and pct_change > 3:
             ai_signal = "🔥 SUPER STRONG"
@@ -215,9 +215,9 @@ for stock in STOCKS:
         else:
             ai_signal = "-"
 
-        # =========================================
-        # FILTER
-        # =========================================
+        # =================================================
+        # FILTER MINIMUM
+        # =================================================
 
         if ratio_volume >= 2:
 
@@ -266,18 +266,49 @@ if df_hasil.empty:
 
 else:
 
-    # =================================================
-    # FILTER SECTOR
-    # =================================================
+    # =====================================================
+    # SIDEBAR FILTER
+    # =====================================================
+
+    st.sidebar.title("⚙️ FILTER")
+
+    # =========================================
+    # SECTOR FILTER
+    # =========================================
 
     sectors = ["ALL"] + sorted(
         df_hasil["Sector"].unique().tolist()
     )
 
-    selected_sector = st.selectbox(
-        "📊 Filter Sector",
+    selected_sector = st.sidebar.selectbox(
+        "📊 Sector",
         sectors
     )
+
+    # =========================================
+    # AI SIGNAL FILTER
+    # =========================================
+
+    signals = ["ALL"] + sorted(
+        df_hasil["AI Signal"].unique().tolist()
+    )
+
+    selected_signal = st.sidebar.selectbox(
+        "🤖 AI Signal",
+        signals
+    )
+
+    # =========================================
+    # BANDAR FILTER
+    # =========================================
+
+    accumulation_only = st.sidebar.checkbox(
+        "🏦 Bandar Accumulation Only"
+    )
+
+    # =====================================================
+    # APPLY FILTER
+    # =====================================================
 
     if selected_sector != "ALL":
 
@@ -285,18 +316,32 @@ else:
             df_hasil["Sector"] == selected_sector
         ]
 
-    # =================================================
+    if selected_signal != "ALL":
+
+        df_hasil = df_hasil[
+            df_hasil["AI Signal"] == selected_signal
+        ]
+
+    if accumulation_only:
+
+        df_hasil = df_hasil[
+            (df_hasil["Value Ratio"] >= 2)
+            &
+            (df_hasil["% Change"] >= 0)
+        ]
+
+    # =====================================================
     # SORT
-    # =================================================
+    # =====================================================
 
     df_hasil = df_hasil.sort_values(
         by="Volume Ratio",
         ascending=False
     )
 
-    # =================================================
-    # HEATMAP SECTOR
-    # =================================================
+    # =====================================================
+    # HEATMAP
+    # =====================================================
 
     st.subheader("🔥 Sector Heatmap")
 
@@ -307,38 +352,13 @@ else:
     )
 
     st.dataframe(
-        heatmap.rename("Average Volume Ratio")
-    )
-
-    # =================================================
-    # BANDAR ACCUMULATION
-    # =================================================
-
-    st.subheader("🏦 Bandar Accumulation Detector")
-
-    bandar_df = df_hasil[
-        (df_hasil["Value Ratio"] >= 2)
-        &
-        (df_hasil["% Change"] >= 0)
-    ]
-
-    st.dataframe(
-        bandar_df[
-            [
-                "Ticker",
-                "Sector",
-                "Price",
-                "% Change",
-                "Value Ratio",
-                "AI Signal"
-            ]
-        ],
+        heatmap.rename("Average Volume Ratio"),
         use_container_width=True
     )
 
-    # =================================================
+    # =====================================================
     # FORMAT
-    # =================================================
+    # =====================================================
 
     df_display = df_hasil.copy()
 
@@ -362,9 +382,9 @@ else:
         "% Change"
     ].apply(lambda x: f"{x:+.2f}%")
 
-    # =================================================
+    # =====================================================
     # MAIN TABLE
-    # =================================================
+    # =====================================================
 
     st.subheader("📈 Institutional Volume Scanner")
 
