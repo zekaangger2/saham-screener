@@ -24,9 +24,9 @@ st.set_page_config(
 # TITLE
 # =====================================================
 
-st.title("🚀 IDX SMART MONEY SCANNER")
+st.title("🚀 IDX INSTITUTIONAL SCANNER")
 st.caption(
-    "Volume Scanner • Relative Strength • AI Signal"
+    "Smart Money • Accumulation • Sector Rotation • AI Score"
 )
 
 # =====================================================
@@ -114,11 +114,11 @@ sector_map = {
 # DOWNLOAD DATA
 # =====================================================
 
-with st.spinner("Scanning market..."):
+with st.spinner("Scanning institutional activity..."):
 
     data = yf.download(
         tickers=STOCKS,
-        period="3mo",
+        period="6mo",
         interval="1d",
         group_by="ticker",
         auto_adjust=True,
@@ -138,14 +138,18 @@ for stock in STOCKS:
 
         df = data[stock].dropna()
 
-        if len(df) < 30:
+        if len(df) < 40:
             continue
 
-        volume_today = df["Volume"].iloc[-1]
-        avg_volume_20 = df["Volume"].tail(20).mean()
+        # =================================================
+        # BASIC DATA
+        # =================================================
 
         close_today = df["Close"].iloc[-1]
         close_yesterday = df["Close"].iloc[-2]
+
+        volume_today = df["Volume"].iloc[-1]
+        avg_volume_20 = df["Volume"].tail(20).mean()
 
         price_change = (
             (close_today - close_yesterday)
@@ -155,6 +159,10 @@ for stock in STOCKS:
         volume_ratio = (
             volume_today / avg_volume_20
         )
+
+        # =================================================
+        # TRANSACTION VALUE
+        # =================================================
 
         value_today = close_today * volume_today
 
@@ -168,38 +176,102 @@ for stock in STOCKS:
             value_today / avg_value_20
         )
 
+        # =================================================
+        # RELATIVE STRENGTH
+        # =================================================
+
         rs = (
-            (close_today / df["Close"].iloc[-20]) - 1
+            (
+                close_today /
+                df["Close"].iloc[-20]
+            ) - 1
         ) * 100
 
+        # =================================================
+        # BREAKOUT
+        # =================================================
+
         breakout = (
-            close_today >= df["High"].tail(20).max()
+            close_today >=
+            df["High"].tail(20).max()
         )
+
+        # =================================================
+        # EARLY ACCUMULATION
+        # =================================================
 
         accumulation = (
+
             volume_ratio > 1.5
-            and abs(price_change) < 3
+            and
+            abs(price_change) < 3
+            and
+            rs > 0
+
         )
 
-        ai_signal = "NEUTRAL"
+        # =================================================
+        # SMART MONEY SCORE
+        # =================================================
 
-        if (
-            volume_ratio > 2
-            and transaction_ratio > 2
-            and rs > 10
-        ):
-            ai_signal = "BUY"
+        score = 0
 
-        elif (
-            volume_ratio > 1.5
-            and rs > 5
-        ):
-            ai_signal = "SPEC BUY"
+        # volume score
+        if volume_ratio > 3:
+            score += 30
+        elif volume_ratio > 2:
+            score += 20
+        elif volume_ratio > 1.5:
+            score += 10
 
-        elif (
-            price_change < -3
-        ):
-            ai_signal = "AVOID"
+        # transaction score
+        if transaction_ratio > 3:
+            score += 30
+        elif transaction_ratio > 2:
+            score += 20
+        elif transaction_ratio > 1.5:
+            score += 10
+
+        # RS score
+        if rs > 20:
+            score += 20
+        elif rs > 10:
+            score += 15
+        elif rs > 5:
+            score += 10
+
+        # breakout score
+        if breakout:
+            score += 10
+
+        # accumulation score
+        if accumulation:
+            score += 10
+
+        # =================================================
+        # AI SIGNAL
+        # =================================================
+
+        signal = "NEUTRAL"
+
+        if score >= 80:
+            signal = "🔥 STRONG BUY"
+
+        elif score >= 60:
+            signal = "✅ BUY"
+
+        elif score >= 40:
+            signal = "🟡 SPEC BUY"
+
+        elif score >= 20:
+            signal = "👀 WATCHLIST"
+
+        else:
+            signal = "❌ AVOID"
+
+        # =================================================
+        # SAVE RESULT
+        # =================================================
 
         results.append({
 
@@ -235,8 +307,11 @@ for stock in STOCKS:
             "Accumulation":
                 "YES" if accumulation else "NO",
 
+            "AI Score":
+                score,
+
             "AI Signal":
-                ai_signal
+                signal
 
         })
 
@@ -250,7 +325,7 @@ for stock in STOCKS:
 df_result = pd.DataFrame(results)
 
 # =====================================================
-# FILTER
+# FILTERS
 # =====================================================
 
 st.sidebar.title("FILTER")
@@ -267,6 +342,11 @@ sector_filter = st.sidebar.selectbox(
 signal_filter = st.sidebar.selectbox(
     "AI Signal",
     ["ALL"] + sorted(df_result["AI Signal"].unique())
+)
+
+acc_filter = st.sidebar.selectbox(
+    "Accumulation",
+    ["ALL", "YES", "NO"]
 )
 
 filtered_df = df_result.copy()
@@ -287,76 +367,65 @@ if signal_filter != "ALL":
         filtered_df["AI Signal"] == signal_filter
     ]
 
+if acc_filter != "ALL":
+    filtered_df = filtered_df[
+        filtered_df["Accumulation"] == acc_filter
+    ]
+
 # =====================================================
-# HEATMAP
+# SECTOR ROTATION
 # =====================================================
 
-st.subheader("🔥 SECTOR HEATMAP")
+st.subheader("🔥 STRONGEST SECTOR")
 
-heatmap = (
+sector_strength = (
+
     filtered_df
-    .groupby("Sector")["Volume Ratio"]
+    .groupby("Sector")["AI Score"]
     .mean()
     .sort_values(ascending=False)
+
 )
 
 cols = st.columns(4)
 
-for i, (sector, value) in enumerate(heatmap.items()):
+for i, (sector, value) in enumerate(
+    sector_strength.items()
+):
 
     cols[i % 4].metric(
         sector,
-        f"{round(value,2)}x"
+        f"{round(value,1)}"
     )
 
 # =====================================================
-# MARKET SUMMARY
+# EARLY ACCUMULATION TABLE
 # =====================================================
 
-st.subheader("📊 MARKET SUMMARY")
+st.subheader("🏦 EARLY ACCUMULATION")
 
-c1, c2, c3, c4 = st.columns(4)
+acc_df = filtered_df[
+    filtered_df["Accumulation"] == "YES"
+]
 
-c1.metric(
-    "Total Signal",
-    len(filtered_df)
+acc_df = acc_df.sort_values(
+    by="AI Score",
+    ascending=False
 )
 
-c2.metric(
-    "Breakout",
-    len(
-        filtered_df[
-            filtered_df["Breakout"] == "YES"
-        ]
-    )
-)
-
-c3.metric(
-    "Accumulation",
-    len(
-        filtered_df[
-            filtered_df["Accumulation"] == "YES"
-        ]
-    )
-)
-
-c4.metric(
-    "BUY Signal",
-    len(
-        filtered_df[
-            filtered_df["AI Signal"] == "BUY"
-        ]
-    )
+st.dataframe(
+    acc_df.head(15),
+    use_container_width=True
 )
 
 # =====================================================
-# TABLE
+# MAIN TABLE
 # =====================================================
 
 st.subheader("🚀 MAIN SCANNER")
 
 filtered_df = filtered_df.sort_values(
-    by="Volume Ratio",
+    by="AI Score",
     ascending=False
 )
 
