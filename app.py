@@ -8,161 +8,144 @@ import numpy as np
 # =====================================================
 
 st.set_page_config(
-    page_title="IDX Bandar Activity Scanner",
+    page_title="IDX Bandar Scanner",
     layout="wide"
 )
 
 st.title("🚀 IDX Bandar Activity Scanner")
-st.caption("Volume & Transaction Activity Scanner - Indonesia Stock Market")
+st.caption("Volume Scanner + Bandar Accumulation Detector")
 
 # =====================================================
-# FULL IDX STOCK LIST
+# STOCKS + CATEGORY
 # =====================================================
 
-stocks = [
+stock_data = {
 
-# BANK
-"BBCA.JK","BBRI.JK","BMRI.JK","BBNI.JK","BRIS.JK",
-"BNGA.JK","BNII.JK","MEGA.JK","NISP.JK","BTPN.JK",
-"BJBR.JK","BJTM.JK","AGRO.JK","ARTO.JK","BBKP.JK",
-"BBTN.JK","BDMN.JK","BEKS.JK","BINA.JK","DNAR.JK",
+    # =========================
+    # BANK
+    # =========================
 
-# MINING
-"ADRO.JK","ADMR.JK","ANTM.JK","PTBA.JK","ITMG.JK",
-"BUMI.JK","MEDC.JK","ELSA.JK","TINS.JK","INDY.JK",
-"DEWA.JK","DOID.JK","BYAN.JK","HRUM.JK","MBAP.JK",
-"KKGI.JK","TOBA.JK","UNTR.JK","GEMS.JK","ESSA.JK",
+    "BBCA.JK": "BANK",
+    "BBRI.JK": "BANK",
+    "BMRI.JK": "BANK",
+    "BBNI.JK": "BANK",
+    "BRIS.JK": "BANK",
+    "ARTO.JK": "BANK",
+    "BBTN.JK": "BANK",
+    "BJBR.JK": "BANK",
+    "BJTM.JK": "BANK",
 
-# CONSUMER
-"ICBP.JK","INDF.JK","MYOR.JK","SIDO.JK","ULTJ.JK",
-"UNVR.JK","HMSP.JK","GGRM.JK","KLBF.JK","CMRY.JK",
-"GOOD.JK","ROTI.JK","STTP.JK","AISA.JK","CEKA.JK",
+    # =========================
+    # MINING
+    # =========================
 
-# RETAIL
-"ACES.JK","AMRT.JK","MAPI.JK","ERAA.JK","LPPF.JK",
-"RALS.JK","MIDI.JK","CSAP.JK","MPPA.JK","HERO.JK",
+    "ADRO.JK": "MINING",
+    "ADMR.JK": "MINING",
+    "ANTM.JK": "MINING",
+    "PTBA.JK": "MINING",
+    "ITMG.JK": "MINING",
+    "MEDC.JK": "MINING",
+    "TINS.JK": "MINING",
+    "ELSA.JK": "MINING",
+    "BUMI.JK": "MINING",
 
-# TELECOM
-"TLKM.JK","EXCL.JK","ISAT.JK","FREN.JK","MTEL.JK",
+    # =========================
+    # TECHNOLOGY
+    # =========================
 
-# TECHNOLOGY
-"GOTO.JK","BUKA.JK","DCII.JK","DNET.JK","EDGE.JK",
-"MCAS.JK","EMTK.JK","KIOS.JK","ZYRX.JK","TECH.JK",
+    "GOTO.JK": "TECHNOLOGY",
+    "BUKA.JK": "TECHNOLOGY",
+    "DCII.JK": "TECHNOLOGY",
+    "DNET.JK": "TECHNOLOGY",
+    "EMTK.JK": "TECHNOLOGY",
 
-# PROPERTY
-"BSDE.JK","CTRA.JK","PWON.JK","SMRA.JK","ASRI.JK",
-"DMAS.JK","KIJA.JK","JRPT.JK","LPKR.JK","MDLN.JK",
+    # =========================
+    # CONSUMER
+    # =========================
 
-# CONSTRUCTION
-"PTPP.JK","ADHI.JK","WIKA.JK","WEGE.JK","WSKT.JK",
-"DGIK.JK","TOTL.JK","SSIA.JK","NRCA.JK",
+    "ICBP.JK": "CONSUMER",
+    "INDF.JK": "CONSUMER",
+    "MYOR.JK": "CONSUMER",
+    "SIDO.JK": "CONSUMER",
+    "ULTJ.JK": "CONSUMER",
+    "UNVR.JK": "CONSUMER",
+    "KLBF.JK": "CONSUMER",
 
-# OTOMOTIF
-"ASII.JK","AUTO.JK","IMAS.JK","SMSM.JK",
+    # =========================
+    # PROPERTY
+    # =========================
 
-# INDUSTRY
-"SMGR.JK","INTP.JK","ARNA.JK","MARK.JK",
+    "BSDE.JK": "PROPERTY",
+    "CTRA.JK": "PROPERTY",
+    "PWON.JK": "PROPERTY",
+    "SMRA.JK": "PROPERTY",
+    "ASRI.JK": "PROPERTY",
 
-# POULTRY
-"CPIN.JK","JPFA.JK","MAIN.JK",
+    # =========================
+    # TELECOM
+    # =========================
 
-# HEALTHCARE
-"HEAL.JK","MIKA.JK","SILO.JK","SRAJ.JK","CARE.JK",
+    "TLKM.JK": "TELECOM",
+    "EXCL.JK": "TELECOM",
+    "ISAT.JK": "TELECOM",
 
-# TRANSPORT
-"BIRD.JK","SMDR.JK","WINS.JK","TMAS.JK","ASSA.JK",
+    # =========================
+    # HEALTHCARE
+    # =========================
 
-# INFRA
-"JSMR.JK","PGAS.JK","TBIG.JK","TOWR.JK",
+    "HEAL.JK": "HEALTHCARE",
+    "MIKA.JK": "HEALTHCARE",
+    "SILO.JK": "HEALTHCARE",
+    "CARE.JK": "HEALTHCARE",
 
-# ENERGY
-"AKRA.JK","PGEO.JK","RAJA.JK",
+    # =========================
+    # INDUSTRIAL
+    # =========================
 
-# ADDITIONAL
-"AALI.JK","ABMM.JK","ACST.JK","ADES.JK","ADMF.JK",
-"AGII.JK","AIMS.JK","AKPI.JK","ALDO.JK","ALKA.JK",
-"AMAG.JK","AMFG.JK","AMIN.JK","APIC.JK","APLN.JK",
-"ARGO.JK","ARII.JK","ARKA.JK","ARTA.JK","ARTI.JK",
-"ASDM.JK","ASGR.JK","ASMI.JK","ASRM.JK","ATIC.JK",
-"BAPA.JK","BATA.JK","BAYU.JK","BBHI.JK","BCAP.JK",
-"BCIC.JK","BCIP.JK","BDKR.JK","BEST.JK","BFIN.JK",
-"BGTG.JK","BIPI.JK","BISI.JK","BKDP.JK","BKSL.JK",
-"BLTA.JK","BMAS.JK","BMHS.JK","BMTR.JK","BNBA.JK",
-"BNBR.JK","BNLI.JK","BOGA.JK","BOLA.JK","BOSS.JK",
-"BRAM.JK","BRMS.JK","BRNA.JK","BRPT.JK","BSIM.JK",
-"BSSR.JK","BTPS.JK","BUKK.JK","BULL.JK","CAMP.JK",
-"CARS.JK","CASA.JK","CINT.JK","CLEO.JK","CMNP.JK",
-"CNKO.JK","CPRO.JK","CSIS.JK","CTBN.JK","CTTH.JK",
-"DAYA.JK","DEFI.JK","DEPO.JK","DGNS.JK","DILD.JK",
-"DMND.JK","DSFI.JK","DSNG.JK","DSSA.JK","DUTI.JK",
-"DYAN.JK","ECII.JK","ELTY.JK","ENRG.JK","EPMT.JK",
-"ESTA.JK","ESTI.JK","FAPA.JK","FAST.JK","FASW.JK",
-"FILM.JK","FISH.JK","FORU.JK","GAMA.JK","GDST.JK",
-"GIAA.JK","GJTL.JK","GLVA.JK","GMFI.JK","GOLD.JK",
-"GPRA.JK","GSMF.JK","GWSA.JK","HAIS.JK","HATM.JK",
-"HDFA.JK","HELI.JK","HITS.JK","HOTL.JK","HUMI.JK",
-"IBFN.JK","IBST.JK","IMJS.JK","IMPC.JK","INAI.JK",
-"INCO.JK","INDS.JK","INDX.JK","INKP.JK","INRU.JK",
-"INTA.JK","IPCM.JK","ISSP.JK","JECC.JK","JGLE.JK",
-"JSKY.JK","JSPT.JK","KAEF.JK","KARW.JK","KBLM.JK",
-"KBLI.JK","KDSI.JK","KEEN.JK","KINO.JK","KKES.JK",
-"KLAS.JK","KMTR.JK","KOBX.JK","KONI.JK","KPIG.JK",
-"KRAS.JK","LABA.JK","LAPD.JK","LCGP.JK","LEAD.JK",
-"LINK.JK","LMAS.JK","LMPI.JK","LPCK.JK","LPIN.JK",
-"LRNA.JK","LSIP.JK","LTLS.JK","LUCK.JK","MAMI.JK",
-"MASA.JK","MAYA.JK","MBSS.JK","MCOL.JK","MDKA.JK",
-"MDRN.JK","MERK.JK","META.JK","MGNA.JK","MICE.JK",
-"MINA.JK","MLIA.JK","MLPL.JK","MMLP.JK","MPMX.JK",
-"MTDL.JK","MTFN.JK","MYRX.JK","NELY.JK","NICL.JK",
-"NIKL.JK","OASA.JK","OCAP.JK","OKAS.JK","OMRE.JK",
-"PADI.JK","PALM.JK","PANR.JK","PBRX.JK","PEHA.JK",
-"PGLI.JK","PICO.JK","PKPK.JK","PLAN.JK","PMJS.JK",
-"POLA.JK","POLI.JK","POOL.JK","PPGL.JK","PSAB.JK",
-"PTIS.JK","PURE.JK","PYFA.JK","RAAM.JK","RBMS.JK",
-"RDTX.JK","RELI.JK","RICY.JK","RMKE.JK","RMKO.JK",
-"SAFE.JK","SAME.JK","SCMA.JK","SDMU.JK","SDPC.JK",
-"SGRO.JK","SHIP.JK","SICO.JK","SIMP.JK","SMDM.JK",
-"SMKL.JK","SMMT.JK","SOHO.JK","SPMA.JK","SPTO.JK",
-"SQMI.JK","SRTG.JK","STAR.JK","SUGI.JK","SUPR.JK",
-"TAPG.JK","TARA.JK","TAXI.JK","TCID.JK","TEBE.JK",
-"TFAS.JK","TGKA.JK","TIFA.JK","TKIM.JK","TMPO.JK",
-"TNCA.JK","TOOL.JK","TOYS.JK","TRAM.JK","TRGU.JK",
-"TRIN.JK","TRJA.JK","TRUE.JK","TRUK.JK","TSPC.JK",
-"TURI.JK","UCID.JK","UNSP.JK","VIVA.JK","WEHA.JK",
-"WIFI.JK","WOOD.JK","YULE.JK","ZINC.JK"
+    "ASII.JK": "INDUSTRIAL",
+    "AUTO.JK": "INDUSTRIAL",
+    "SMSM.JK": "INDUSTRIAL",
+    "UNTR.JK": "INDUSTRIAL",
 
-]
+    # =========================
+    # INFRA
+    # =========================
 
-# REMOVE DUPLICATE
-stocks = list(set(stocks))
-stocks.sort()
+    "JSMR.JK": "INFRA",
+    "PGAS.JK": "INFRA",
+    "TBIG.JK": "INFRA",
+    "TOWR.JK": "INFRA",
 
-# =====================================================
-# CATEGORY MAPPING
-# =====================================================
+    # =========================
+    # POULTRY
+    # =========================
 
-category_map = {
+    "CPIN.JK": "POULTRY",
+    "JPFA.JK": "POULTRY",
+    "MAIN.JK": "POULTRY",
 
-    "BANK": [
-        "BBCA.JK","BBRI.JK","BMRI.JK","BBNI.JK","BRIS.JK"
-    ],
+    # =========================
+    # RETAIL
+    # =========================
 
-    "MINING": [
-        "ADRO.JK","ADMR.JK","ANTM.JK","PTBA.JK","ITMG.JK"
-    ],
+    "ACES.JK": "RETAIL",
+    "AMRT.JK": "RETAIL",
+    "MAPI.JK": "RETAIL",
+    "ERAA.JK": "RETAIL",
+    "LPPF.JK": "RETAIL",
 
-    "TECHNOLOGY": [
-        "GOTO.JK","BUKA.JK","DCII.JK"
-    ],
+    # =========================
+    # TRANSPORT
+    # =========================
 
-    "PROPERTY": [
-        "BSDE.JK","CTRA.JK","PWON.JK"
-    ],
+    "BIRD.JK": "TRANSPORT",
+    "SMDR.JK": "TRANSPORT",
+    "TMAS.JK": "TRANSPORT",
+    "ASSA.JK": "TRANSPORT"
 
-    "CONSUMER": [
-        "ICBP.JK","INDF.JK","MYOR.JK","SIDO.JK"
-    ]
 }
+
+stocks = list(stock_data.keys())
 
 # =====================================================
 # SIDEBAR FILTER
@@ -170,25 +153,48 @@ category_map = {
 
 st.sidebar.title("FILTER")
 
-search_ticker = st.sidebar.text_input(
+# SEARCH
+search = st.sidebar.text_input(
     "Search Ticker"
 )
 
-signal_filter = st.sidebar.selectbox(
-    "Signal",
+# SECTOR FILTER
+all_sector = sorted(
+    list(set(stock_data.values()))
+)
+
+selected_sector = st.sidebar.selectbox(
+    "Sector",
+    ["ALL"] + all_sector
+)
+
+# SIGNAL FILTER
+selected_signal = st.sidebar.selectbox(
+    "Volume Signal",
     ["ALL", "🔥 SUPER", "🚀 HIGH", "⚡ ACTIVE"]
 )
 
+# BANDAR FILTER
+selected_bandar = st.sidebar.selectbox(
+    "Bandar Detector",
+    [
+        "ALL",
+        "🔥 ACCUMULATION",
+        "⚠️ DISTRIBUTION",
+        "NORMAL"
+    ]
+)
+
 # =====================================================
-# FAST BATCH SCANNER
+# SCANNER
 # =====================================================
 
 hasil = []
 
-BATCH_SIZE = 50
+BATCH_SIZE = 30
 
 batches = [
-    stocks[i:i + BATCH_SIZE]
+    stocks[i:i+BATCH_SIZE]
     for i in range(0, len(stocks), BATCH_SIZE)
 ]
 
@@ -203,7 +209,7 @@ for idx, batch in enumerate(batches):
     try:
 
         status_text.text(
-            f"Scanning batch {idx+1}/{total_batch}"
+            f"Scanning {idx+1}/{total_batch}"
         )
 
         data = yf.download(
@@ -231,8 +237,30 @@ for idx, batch in enumerate(batches):
                 if len(df) < 20:
                     continue
 
+                # =====================
+                # CLEANING
+                # =====================
+
                 df["Close"] = (
                     df["Close"]
+                    .ffill()
+                    .fillna(0)
+                )
+
+                df["Open"] = (
+                    df["Open"]
+                    .ffill()
+                    .fillna(0)
+                )
+
+                df["High"] = (
+                    df["High"]
+                    .ffill()
+                    .fillna(0)
+                )
+
+                df["Low"] = (
+                    df["Low"]
                     .ffill()
                     .fillna(0)
                 )
@@ -241,6 +269,33 @@ for idx, batch in enumerate(batches):
                     df["Volume"]
                     .fillna(0)
                 )
+
+                # =====================
+                # PRICE
+                # =====================
+
+                close_today = (
+                    df["Close"]
+                    .iloc[-1]
+                )
+
+                close_yesterday = (
+                    df["Close"]
+                    .iloc[-2]
+                )
+
+                change_pct = (
+                    (
+                        close_today -
+                        close_yesterday
+                    )
+                    /
+                    close_yesterday
+                ) * 100
+
+                # =====================
+                # VOLUME
+                # =====================
 
                 avg_volume_20 = (
                     df["Volume"]
@@ -253,6 +308,10 @@ for idx, batch in enumerate(batches):
                     df["Volume"]
                     .iloc[-1]
                 )
+
+                # =====================
+                # VALUE
+                # =====================
 
                 df["value"] = (
                     df["Close"] *
@@ -271,19 +330,19 @@ for idx, batch in enumerate(batches):
                     .iloc[-1]
                 )
 
+                # =====================
                 # VALIDATION
+                # =====================
 
                 if pd.isna(avg_volume_20):
-                    continue
-
-                if pd.isna(avg_value_20):
                     continue
 
                 if avg_volume_20 <= 0:
                     continue
 
-                if avg_value_20 <= 0:
-                    continue
+                # =====================
+                # RATIO
+                # =====================
 
                 ratio_volume = (
                     volume_today /
@@ -295,42 +354,86 @@ for idx, batch in enumerate(batches):
                     avg_value_20
                 )
 
-                # FILTER ONLY ACTIVE STOCK
-
-                if ratio_volume < 2:
-                    continue
-
-                # SIGNAL
+                # =====================
+                # VOLUME SIGNAL
+                # =====================
 
                 if ratio_volume >= 5:
-                    signal = "🔥 SUPER"
+                    volume_signal = "🔥 SUPER"
 
                 elif ratio_volume >= 3:
-                    signal = "🚀 HIGH"
+                    volume_signal = "🚀 HIGH"
+
+                elif ratio_volume >= 2:
+                    volume_signal = "⚡ ACTIVE"
 
                 else:
-                    signal = "⚡ ACTIVE"
+                    volume_signal = "NORMAL"
 
-                # CATEGORY
+                # =====================
+                # BANDAR DETECTOR
+                # =====================
 
-                category = "OTHER"
+                body = abs(
+                    close_today -
+                    df["Open"].iloc[-1]
+                )
 
-                for cat, members in category_map.items():
+                candle_range = (
+                    df["High"].iloc[-1] -
+                    df["Low"].iloc[-1]
+                )
 
-                    if stock in members:
-                        category = cat
-                        break
+                if candle_range == 0:
+                    candle_range = 1
+
+                body_ratio = (
+                    body /
+                    candle_range
+                )
+
+                # ACCUMULATION
+                if (
+                    ratio_volume >= 2
+                    and ratio_value >= 2
+                    and abs(change_pct) <= 2
+                    and body_ratio <= 0.5
+                ):
+
+                    bandar_signal = "🔥 ACCUMULATION"
+
+                # DISTRIBUTION
+                elif (
+                    ratio_volume >= 2
+                    and change_pct <= -3
+                ):
+
+                    bandar_signal = "⚠️ DISTRIBUTION"
+
+                else:
+
+                    bandar_signal = "NORMAL"
+
+                # =====================
+                # APPEND
+                # =====================
 
                 hasil.append({
 
                     "Ticker":
                         stock,
 
-                    "Category":
-                        category,
+                    "Sector":
+                        stock_data.get(
+                            stock,
+                            "OTHER"
+                        ),
 
-                    "Signal":
-                        signal,
+                    "Price":
+                        round(close_today, 2),
+
+                    "Change %":
+                        f"{change_pct:+.2f}%",
 
                     "Avg Volume 20":
                         f"{avg_volume_20:,.0f}".replace(",", "."),
@@ -341,16 +444,22 @@ for idx, batch in enumerate(batches):
                     "Volume Ratio":
                         round(ratio_volume, 2),
 
-                    "Avg Value 20":
+                    "Avg Transaction":
                         "Rp " +
                         f"{avg_value_20:,.0f}".replace(",", "."),
 
-                    "Value Today":
+                    "Transaction Today":
                         "Rp " +
                         f"{value_today:,.0f}".replace(",", "."),
 
-                    "Value Ratio":
-                        round(ratio_value, 2)
+                    "Transaction Ratio":
+                        round(ratio_value, 2),
+
+                    "Volume Signal":
+                        volume_signal,
+
+                    "Bandar Detector":
+                        bandar_signal
 
                 })
 
@@ -378,24 +487,43 @@ hasil_df = pd.DataFrame(hasil)
 
 if not hasil_df.empty:
 
-    if search_ticker:
+    # SEARCH
+    if search:
 
         hasil_df = hasil_df[
             hasil_df["Ticker"]
             .str.contains(
-                search_ticker.upper()
+                search.upper()
             )
         ]
 
-    if signal_filter != "ALL":
+    # SECTOR
+    if selected_sector != "ALL":
 
         hasil_df = hasil_df[
-            hasil_df["Signal"] ==
-            signal_filter
+            hasil_df["Sector"] ==
+            selected_sector
         ]
 
+    # SIGNAL
+    if selected_signal != "ALL":
+
+        hasil_df = hasil_df[
+            hasil_df["Volume Signal"] ==
+            selected_signal
+        ]
+
+    # BANDAR
+    if selected_bandar != "ALL":
+
+        hasil_df = hasil_df[
+            hasil_df["Bandar Detector"] ==
+            selected_bandar
+        ]
+
+    # SORTING
     hasil_df = hasil_df.sort_values(
-        by="Value Ratio",
+        by="Transaction Ratio",
         ascending=False
     )
 
@@ -403,23 +531,38 @@ if not hasil_df.empty:
 # METRICS
 # =====================================================
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-
-    st.metric(
-        "Total Signal",
-        len(hasil_df)
-    )
-
-with col2:
 
     st.metric(
         "Total Stocks",
         len(stocks)
     )
 
+with col2:
+
+    st.metric(
+        "Signals Found",
+        len(hasil_df)
+    )
+
 with col3:
+
+    accumulation_count = len(
+        hasil_df[
+            hasil_df["Bandar Detector"]
+            ==
+            "🔥 ACCUMULATION"
+        ]
+    )
+
+    st.metric(
+        "Accumulation",
+        accumulation_count
+    )
+
+with col4:
 
     st.metric(
         "Scanner Status",
@@ -433,5 +576,5 @@ with col3:
 st.dataframe(
     hasil_df,
     use_container_width=True,
-    height=700
+    height=750
 )
