@@ -138,6 +138,8 @@ for ticker in ticker_list:
             continue
 
         close_today = float(df["Close"].iloc[-1])
+        close_yesterday = float(df["Close"].iloc[-2])
+
         close_20 = float(df["Close"].iloc[-20])
 
         volume_today = float(df["Volume"].iloc[-1])
@@ -147,6 +149,15 @@ for ticker in ticker_list:
         avg_value = (df["Close"] * df["Volume"]).tail(20).mean()
 
         highest_20 = float(df["High"].tail(20).max())
+
+        # =====================================================
+        # PRICE CHANGE
+        # =====================================================
+
+        price_change = (
+            (close_today - close_yesterday)
+            / close_yesterday
+        ) * 100
 
         # =====================================================
         # RATIO
@@ -207,7 +218,14 @@ for ticker in ticker_list:
             hasil.append({
 
                 "Ticker": ticker,
+
                 "Sector": stocks[ticker],
+
+                "Price":
+                    f"{close_today:,.0f}".replace(",", "."),
+
+                "% Change":
+                    f"{price_change:+.2f}%",
 
                 "Avg Volume 20D":
                     f"{int(avg_volume):,}".replace(",", "."),
@@ -296,31 +314,14 @@ sector_heatmap = (
     .sort_values(ascending=False)
 )
 
-col1, col2, col3, col4 = st.columns(4)
+cols = st.columns(4)
 
 for i, (sector, value) in enumerate(sector_heatmap.items()):
 
-    emoji = "🟢"
-
-    if value >= 3:
-        emoji = "🔥"
-
-    elif value >= 2:
-        emoji = "🚀"
-
-    text = f"{emoji} {sector}\n\n{round(value,2)}x"
-
-    if i % 4 == 0:
-        col1.metric(sector, f"{round(value,2)}x")
-
-    elif i % 4 == 1:
-        col2.metric(sector, f"{round(value,2)}x")
-
-    elif i % 4 == 2:
-        col3.metric(sector, f"{round(value,2)}x")
-
-    else:
-        col4.metric(sector, f"{round(value,2)}x")
+    cols[i % 4].metric(
+        sector,
+        f"{round(value,2)}x"
+    )
 
 # =========================================================
 # MARKET SUMMARY
