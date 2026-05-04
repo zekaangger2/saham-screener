@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import yfinance as yf
 from datetime import datetime
+import pytz
+
 from stocks import STOCKS
 
 # =====================================================
@@ -12,6 +14,16 @@ st.set_page_config(
     page_title="IDX Institutional Scanner",
     layout="wide"
 )
+
+# =====================================================
+# TIMEZONE INDONESIA
+# =====================================================
+
+jakarta = pytz.timezone("Asia/Jakarta")
+
+now = datetime.now(jakarta)
+
+hour = now.hour
 
 # =====================================================
 # TITLE
@@ -25,7 +37,7 @@ st.title("🔥 IDX Institutional Scanner")
 
 total_scan = len(STOCKS)
 
-now = datetime.now().strftime("%d %B %Y %H:%M")
+last_update = now.strftime("%d %B %Y %H:%M WIB")
 
 st.markdown(
     f"""
@@ -38,7 +50,7 @@ st.markdown(
     <br>
 
     <span style='font-size:11px; color:gray;'>
-    Last Market Detection : {now}
+    Last Market Detection : {last_update}
     </span>
 
     </div>
@@ -50,8 +62,6 @@ st.markdown(
 # MARKET STATUS
 # =====================================================
 
-hour = datetime.now().hour
-
 if 9 <= hour <= 16:
     market_status = "🟢 MARKET OPEN"
 else:
@@ -59,10 +69,11 @@ else:
 
 st.markdown(
     f"""
-    <div style='padding:10px;
+    <div style='padding:12px;
                 border-radius:10px;
                 background:#111111;
-                margin-bottom:20px;'>
+                margin-bottom:20px;
+                font-weight:bold;'>
 
     {market_status}
 
@@ -157,6 +168,10 @@ for stock in STOCKS:
         if len(df) < 25:
             continue
 
+        # =============================================
+        # VOLUME
+        # =============================================
+
         volume_today = float(df["Volume"].iloc[-1])
 
         avg_volume = float(
@@ -168,6 +183,10 @@ for stock in STOCKS:
 
         ratio_volume = volume_today / avg_volume
 
+        # =============================================
+        # PRICE
+        # =============================================
+
         close_today = float(df["Close"].iloc[-1])
 
         close_yesterday = float(df["Close"].iloc[-2])
@@ -176,6 +195,10 @@ for stock in STOCKS:
             (close_today - close_yesterday)
             / close_yesterday
         ) * 100
+
+        # =============================================
+        # TRANSACTION VALUE
+        # =============================================
 
         value_today = volume_today * close_today
 
@@ -188,9 +211,9 @@ for stock in STOCKS:
 
         ratio_value = value_today / avg_value
 
-        # =================================================
+        # =============================================
         # RELATIVE STRENGTH
-        # =================================================
+        # =============================================
 
         ma20 = df["Close"].rolling(20).mean().iloc[-1]
 
@@ -199,9 +222,9 @@ for stock in STOCKS:
         else:
             relative_strength = "WEAK"
 
-        # =================================================
+        # =============================================
         # AI SIGNAL
-        # =================================================
+        # =============================================
 
         if ratio_volume >= 5 and pct_change > 3:
             ai_signal = "🔥 SUPER STRONG"
@@ -209,17 +232,17 @@ for stock in STOCKS:
         elif ratio_volume >= 3 and pct_change > 0:
             ai_signal = "🚀 STRONG"
 
-        elif ratio_volume >= 2:
+        elif ratio_volume >= 1.3:
             ai_signal = "👀 ACCUMULATION"
 
         else:
             ai_signal = "-"
 
-        # =================================================
-        # FILTER MINIMUM
-        # =================================================
+        # =============================================
+        # MAIN FILTER
+        # =============================================
 
-        if ratio_volume >= 2:
+        if ratio_volume >= 1.3:
 
             hasil.append({
 
@@ -267,14 +290,14 @@ if df_hasil.empty:
 else:
 
     # =====================================================
-    # SIDEBAR FILTER
+    # SIDEBAR
     # =====================================================
 
     st.sidebar.title("⚙️ FILTER")
 
-    # =========================================
+    # =====================================================
     # SECTOR FILTER
-    # =========================================
+    # =====================================================
 
     sectors = ["ALL"] + sorted(
         df_hasil["Sector"].unique().tolist()
@@ -285,9 +308,9 @@ else:
         sectors
     )
 
-    # =========================================
+    # =====================================================
     # AI SIGNAL FILTER
-    # =========================================
+    # =====================================================
 
     signals = ["ALL"] + sorted(
         df_hasil["AI Signal"].unique().tolist()
@@ -298,9 +321,9 @@ else:
         signals
     )
 
-    # =========================================
-    # BANDAR FILTER
-    # =========================================
+    # =====================================================
+    # ACCUMULATION FILTER
+    # =====================================================
 
     accumulation_only = st.sidebar.checkbox(
         "🏦 Bandar Accumulation Only"
@@ -357,7 +380,7 @@ else:
     )
 
     # =====================================================
-    # FORMAT
+    # FORMAT DISPLAY
     # =====================================================
 
     df_display = df_hasil.copy()
